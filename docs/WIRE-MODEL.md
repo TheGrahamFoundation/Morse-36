@@ -1,91 +1,66 @@
-# Morse/36: Compact Machine Intent
+# Morse/36 Wire Model
 
-## The wire should carry intent, not representation
+## Representation → FTIP → Morse/36 word(s)
 
 Morse/36 does **not** compress JSON, XML, YAML, HL7, or arbitrary text into shorter field names.
 
-Those formats may exist inside an application. They may remain the canonical representation of data at rest. Morse/36 addresses a different boundary: **what must actually cross the wire for another machine to understand the intended action?**
-
-A Morse is layered.
+The canonical layering is:
 
 ```text
-APPLICATION / DOMAIN CONTENT
-HL7 · JSON · XML · YAML · objects · state
-              |
-              v
-       semantic resolution
-              |
-              v
-     Compact Machine Intent
-              |
-              v
-       Morse word / words
-              |
-============== WIRE ==============
-              |
-             FTIP
-              |
-==================================
-              |
-              v
-     deterministic resolution
-              |
-              v
-        MACHINE ACTION
+APPLICATION / DOMAIN REPRESENTATION
+JSON · XML · YAML · HL7 · objects · language
+                  |
+                  v
+                FTIP
+        canonical semantic intent
+                  |
+                  v
+          Morse/36 word(s)
+                  |
+================ WIRE ================
+          Morse/36 word(s)
+======================================
+                  |
+                  v
+                FTIP
+                  |
+                  v
+       receiver-native operation
 ```
-
-The structures used to derive a Morse are implementation details. They are not required to appear on the wire.
 
 ## FTIP
 
-`FTIP` is the project's first deliberately abstract example of a Morse word.
+FTIP belongs **between representation and Morse/36 encoding**. It is not the wire word and it is not an abbreviation of the source payload.
 
-It should be read as a demonstration of the model, not as a permanently assigned production opcode.
-
-The important property is that the receiver does not need to receive the internal decomposition used by the sender. Both parties resolve the Morse through an agreed, versioned semantic contract.
-
-## Healthcare example
-
-Healthcare makes the distinction easy to see.
-
-A healthcare system may internally represent an event using HL7. Another system may also understand HL7. Morse/36 does not claim HL7 is unnecessary.
-
-It asks whether the entire HL7 representation must cross a particular machine-to-machine boundary when the receiver already possesses the relevant state and only needs to understand the intended operation.
+Its job is semantic normalization: different source formats that mean the same thing should be capable of resolving to the same FTIP intent.
 
 Conceptually:
 
 ```text
-SYSTEM A                              SYSTEM B
-
-HL7 / domain state                   HL7 / domain state
-       |                                    ^
-       v                                    |
-Morse semantic encoder               Morse semantic decoder
-       |                                    ^
-       +--------------- FTIP ---------------+
-                         WIRE
+JSON ─┐
+XML  ─┼─→ FTIP ─→ Morse/36 word(s)
+HL7  ─┤
+RAW  ─┘
 ```
 
-If the receiver does **not** already possess information required to execute the intent, that information still has to be transferred or referenced. Morse/36 does not violate information theory and must never pretend otherwise.
+The reverse path resolves received word(s) back to FTIP before adapting that intent to the receiver's native API, object model, device command, or domain representation.
 
-## Canonical principle
+## Morse/36 words
 
-> **Morse/36 does not compress content. Morse/36 compacts intent.**
+A Morse/36 word is a compact deterministic reference to shared FTIP semantics. A complete intent may use one word or a composition of words.
 
-A Morse word is therefore not merely an abbreviation of serialized fields. It is a deterministic reference to shared semantics.
+The exact pre-v0.1 word grammar is still under research. Internal opcodes, tuples, parse trees, DLM state and source schemas MUST NOT be exposed merely because an encoder used them.
 
 ## M36 and M366
 
-An M36 frame carries one or more Morse words within the experimental 36-character envelope.
+**M36** is the compact envelope, targeting no more than 36 characters. **M366** is the extended envelope for intents that require additional context.
 
-M366 provides a larger envelope for compositions requiring additional intent/context.
+Neither envelope permits semantic loss merely to satisfy the length limit.
 
-The visible wire representation remains Morse words. Internal parsing structures, semantic graphs, DLM state, schemas, and domain representations are not exposed merely because the encoder used them.
+## Canonical principle
+
+> **Morse/36 does not compress content. Morse/36 encodes normalized intent as word(s).**
 
 ## Open question
 
-The central research question is:
-
-> How much representation can safely disappear from the wire when two machines share deterministic semantics?
-
-That question should be answered through open discussion, implementations, and reproducible measurement.
+How much source representation can safely disappear after FTIP normalization when two machines share deterministic semantics?
