@@ -1,38 +1,144 @@
 # Morse/36
 
-Morse/36 is an experimental fixed-width protocol for deterministic agent-to-agent instructions.
+**Compact Machine Intent.**
 
-Instead of repeatedly transmitting verbose task descriptions, two agents that share a versioned registry can exchange a 36-character Base36 frame. The frame identifies the sender, receiver, action, resource, context, referenced state, replay nonce, and an authentication hint.
+Morse/36 is an open protocol experiment for expressing machine intent in a compact, deterministic, implementation-independent form.
 
-> Morse/36 is a research proposal, not a production security protocol.
+It asks a simple question:
 
-## Canonical frame
+> How little does one machine need to say for another machine to act correctly?
+
+Morse/36 is stewarded by **The Graham Foundation**. Implementations may be built by anyone.
+
+## Why
+
+Machine-to-machine systems commonly exchange self-describing payloads using formats such as JSON, XML, CBOR, MessagePack, or Protocol Buffers. Those formats are excellent at representing data.
+
+Morse/36 explores a narrower problem: **intent**.
+
+An agent often does not need a paragraph, a verbose object, or repeated field names to tell another agent what it wants. If both sides share a deterministic vocabulary, the intent itself can be represented compactly.
+
+Morse/36 calls this **Compact Machine Intent (CMI)**.
+
+## Model
 
 ```text
-0QALFRSOPHGETDIAGGCP00000100A1000000
+Human / System Intent
+        |
+        v
+   Intent Encoder
+        |
+        v
+     Morse/36
+        |
+        v
+ HTTP / QUIC / MQTT / WebSocket / Radio / ...
+        |
+        v
+   Intent Decoder
+        |
+        v
+ Machine / Agent / Service / Device
 ```
+
+Morse/36 is not a transport protocol. It can travel over existing transports.
+
+## Frames
+
+The protocol begins with two intentionally constrained frame classes:
+
+- **M36** — compact intent frame, targeting a maximum of 36 characters.
+- **M366** — extended intent frame, targeting a maximum of 366 characters when additional context is required.
+
+The limits are design constraints, not claims of optimality. The specification will define the exact byte-level representation before a stable release.
+
+## Example
+
+A verbose representation might express:
+
+```json
+{
+  "source": "alfred",
+  "destination": "sophia",
+  "operation": "diagnostic",
+  "resource": "voice",
+  "status": "request"
+}
+```
+
+A future Morse/36 registry could assign canonical semantics allowing an equivalent intent to be expressed approximately as:
 
 ```text
-0 | Q | ALFR | SOPH | GET | DIAG | GCP0 | 00001 | 00A1 | 000000
-V   K   SRC    DST    ACT   RES    CTX    REF     NONCE  AUTH
+ASD|VCE|GET|001
 ```
 
-The example asks Sophia to retrieve Alfred's GCP diagnostic context. Field semantics are resolved against a shared registry snapshot.
+This example is illustrative. Opcode assignments are not stable until they enter the public registry specification.
 
-## Repository map
+## Design principles
 
-- [`docs/protocol-v0.1.md`](docs/protocol-v0.1.md): normative draft
-- [`docs/registry-v0.1.md`](docs/registry-v0.1.md): initial shared vocabulary
-- [`docs/security.md`](docs/security.md): threat model and authentication limits
-- [`docs/research-plan.md`](docs/research-plan.md): falsifiable test plan
-- [`CONTRIBUTING.md`](CONTRIBUTING.md): public research workflow
+1. **Intent over description** — transmit what the receiver needs in order to act.
+2. **Deterministic semantics** — the same valid frame must have the same defined meaning.
+3. **Bounded representation** — frame classes have explicit limits.
+4. **Transport independence** — Morse/36 should work above multiple transports.
+5. **Implementation independence** — no David Labs or Foundation service should be required to implement the standard.
+6. **Open registry** — canonical meanings, namespaces, and extensions must be publicly specified.
+7. **Measurable claims** — compactness, latency, token usage, and semantic fidelity must be benchmarked rather than assumed.
 
-## Central hypothesis
+## What Morse/36 is not
 
-A compact frame can reduce bandwidth and parsing cost for repeated, well-known agent operations when both parties share deterministic registries and state. It cannot losslessly replace arbitrary JSON or natural language without that shared context.
+Morse/36 is not intended to replace JSON or XML universally. It is not an LLM prompt format, and it is not itself a networking transport.
+
+It is an experiment toward a standard vocabulary and wire representation for **compact machine intent**.
+
+## Road to v0.1
+
+Before the protocol is considered usable, the project must define:
+
+- character and byte encoding
+- grammar and canonicalization
+- addressing and namespaces
+- intent/opcode registry
+- argument representation
+- M36 and M366 framing
+- version negotiation
+- errors and acknowledgements
+- extension mechanism
+- integrity/security considerations
+- compatibility rules
+- reference encoder and decoder
+- conformance tests
+- benchmarks against appropriate alternatives
+
+## Benchmark 001
+
+The first benchmark will compare representative machine/agent messages across JSON, compressed JSON, CBOR, Protocol Buffers, and Morse/36.
+
+Measurements should include:
+
+- bytes on the wire at the payload layer
+- encoded/compressed size where applicable
+- encode/decode latency
+- parser complexity
+- LLM token consumption where relevant
+- semantic fidelity
+- failure behavior
+
+The goal is not to manufacture a win. The goal is to discover where Compact Machine Intent is actually useful.
+
+## Governance
+
+Morse/36 is intended to evolve through an open specification and RFC process under The Graham Foundation.
+
+No proprietary David Labs infrastructure is required by the protocol.
+
+The registry, reference implementations, conformance suite, and benchmark methodology should remain inspectable and reproducible.
 
 ## Status
 
-`v0.1-draft` — open for criticism, experiments, and competing designs.
+**Experimental / pre-v0.1.**
 
-Morse/36 is maintained under The Graham Foundation and initiated by David Labs.
+Nothing in the current repository should yet be treated as a stable wire standard.
+
+---
+
+**Morse/36 — Compact Machine Intent.**

@@ -1,23 +1,48 @@
 # Contributing to Morse/36
 
-Morse/36 is open research. Criticism, failed experiments, alternative layouts, codecs, threat models, and reproducible measurements are welcome.
+Morse/36 is currently a **discussion-first research protocol**.
 
-## Workflow
+You do not need to arrive with code.
 
-1. Open an issue stating the research question or defect.
-2. Keep protocol changes separate from implementation changes.
-3. Add or update canonical test vectors for semantic changes.
-4. Include compatibility and security consequences.
-5. Submit a pull request for public review.
+## Start with an idea
 
-## Decision standard
+Useful contributions include:
 
-Claims require evidence. Popularity, affiliation, and confidence are not protocol arguments. Negative results remain part of the research record.
+- challenging the Compact Machine Intent model;
+- proposing real machine-to-machine use cases;
+- identifying cases where Morse cannot safely replace representation;
+- protocol and registry design;
+- healthcare, IoT, robotics, agent, edge, and infrastructure examples;
+- security and interoperability criticism;
+- benchmark design;
+- independent implementations.
 
-## Merge control
+Please use **GitHub Discussions** for design conversations when Discussions are enabled on the repository. Issues can be used for concrete, bounded work.
 
-No pull request is merged automatically. Merging requires repository checks and explicit approval from the project maintainer.
+## Code contributors
 
-## Scope guardrail
+Code is welcome as the specification matures.
 
-The v0.1 test bed is limited to synthetic, read-only, non-production operations. Do not connect experimental code to safety-critical or production systems.
+Pull requests should:
+
+1. explain the machine-intent problem being addressed;
+2. preserve deterministic semantics;
+3. include tests for protocol behavior;
+4. avoid claims of efficiency without measurements;
+5. avoid introducing a dependency on proprietary Foundation or David Labs infrastructure.
+
+## Merge governance
+
+Pull requests are reviewed before entering the protocol.
+
+Automation and DLM-assisted review may be used to classify changes, run conformance checks, summarize risks, and recommend a disposition. **A model recommendation is not protocol consensus.**
+
+Until governance is explicitly changed, automated systems must not silently redefine public Morse semantics.
+
+Maintainers retain responsibility for accepted changes.
+
+## Conduct
+
+Criticism of the protocol is welcome. Attack the assumption, benchmark, grammar, implementation, or evidence, not the person making the contribution.
+
+The goal is to discover whether Compact Machine Intent works.
