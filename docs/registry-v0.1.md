@@ -1,67 +1,34 @@
-# Morse/36 Registry v0.1
+# Morse/36 Registry — pre-v0.1
 
-The registry is deliberately small. Codes become normative only after review and a versioned release.
+The registry binds **Morse/36 word(s)** to canonical **FTIP semantics**.
 
-## Message kinds
+## Rule
 
-| Code | Meaning |
-|---|---|
-| `Q` | Query without intended mutation |
-| `C` | Command that may mutate state |
-| `E` | Event notification |
-| `R` | Response with result reference |
-| `A` | Acknowledgement |
-| `X` | Error |
-| `H` | Session handshake |
+```text
+Morse/36 word(s) ⇄ FTIP semantic intent
+```
 
-## Experimental endpoints
+The registry does not expose source-format field names and does not require the wire to carry route/action/resource tuples.
 
-| Code | Agent/service |
-|---|---|
-| `ALFR` | Alfred |
-| `SOPH` | Sophia |
-| `HUBL` | Hubble |
-| `BLND` | Blend |
-| `FABR` | Fabric |
-| `FOXX` | Fox control plane |
-| `SHOP` | Shop |
-| `FFFF` | Broadcast; disabled by default |
+## Entry shape
 
-## Initial actions
+A future accepted entry should record:
 
-| Code | Meaning | Expected mutation |
-|---|---|---|
-| `GET` | Retrieve | No |
-| `RUN` | Execute registered operation | Maybe |
-| `PUT` | Create or replace | Yes |
-| `DEL` | Delete | Yes |
-| `ACK` | Acknowledge | No |
-| `NAK` | Reject | No |
-| `SYN` | Synchronize state | Maybe |
+- canonical Morse word;
+- canonical FTIP meaning;
+- protocol/registry version;
+- intent class and mutation characteristics;
+- required arguments or external references, if any;
+- authorization considerations;
+- deterministic test vectors;
+- rationale and compatibility impact.
 
-## Initial resources
+## Word assignments
 
-| Code | Meaning |
-|---|---|
-| `DIAG` | Diagnostic result |
-| `DLM0` | Deterministic Language Model manifest |
-| `STAT` | Service status |
-| `CONF` | Configuration |
-| `TASK` | Task record |
-| `DATA` | Referenced data |
-| `AUTH` | Authentication/session material |
+**No production word assignments are frozen yet.** Early endpoint/action/resource codes from the tuple-frame experiment are retained only in git history and MUST NOT be interpreted as current Morse/36 wire syntax.
 
-## Initial contexts
-
-| Code | Meaning |
-|---|---|
-| `GCP0` | Google Cloud default profile |
-| `AWS0` | Amazon Web Services default profile |
-| `AZR0` | Microsoft Azure default profile |
-| `LOC0` | Local runtime |
-| `TEST` | Non-production test bed |
-| `PROD` | Production; prohibited in v0.1 experiments |
+The first registry RFC should define the word alphabet, collision rules, composition rules, reserved namespaces and immutable registry digest format before assigning canonical public words.
 
 ## Governance
 
-Every registry change MUST include a rationale, collision analysis, compatibility impact, and test vector. Published registry releases are immutable. Changes create a new registry digest or version; peers MUST NOT silently reinterpret an existing code.
+Published registry releases are immutable. A word MUST NOT silently change FTIP meaning. Any incompatible semantic change requires a new word or registry version and explicit peer negotiation.
