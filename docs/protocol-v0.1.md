@@ -1,156 +1,75 @@
 # Morse/36 Protocol Definition
 
-Status: **v0.1 research draft**  
-Normative words **MUST**, **MUST NOT**, **SHOULD**, and **MAY** describe requirements for experimental interoperability.
+Status: **pre-v0.1 research draft**
 
 ## 1. Purpose
 
-Morse/36 tests whether agents can exchange common instructions through a compact, deterministic frame rather than a repeated verbose payload.
+Morse/36 tests whether machines can exchange normalized intent through compact deterministic **word(s)** rather than repeatedly transmitting verbose source representations.
 
-The protocol is designed for:
-
-- repeated operations with shared semantics;
-- constrained networks and edge devices;
-- deterministic routing before probabilistic inference;
-- auditable agent-to-agent experiments.
-
-It is not designed to encode arbitrary information into 36 characters. Novel or high-entropy data MUST be transmitted separately and referenced by the frame.
-
-## 2. Alphabet and serialization
-
-A core frame MUST contain exactly 36 ASCII characters from:
+## 2. Layer model
 
 ```text
-0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZ
+Source Representation → FTIP → Morse/36 Word(s) → Transport
+Transport → Morse/36 Word(s) → FTIP → Native Action
 ```
 
-Lowercase input, whitespace, separators, and Unicode are invalid on the wire. Human interfaces MAY display separators but MUST remove them before transmission.
+Source representation and wire representation are separate layers. JSON, XML, YAML, HL7, objects and natural language are inputs to semantic normalization; they are not Morse/36 syntax.
 
-## 3. Fixed-width layout
+## 3. FTIP
 
-| Offset | Width | Field | Meaning |
-|---:|---:|---|---|
-| 0 | 1 | `V` | Protocol major version |
-| 1 | 1 | `K` | Message kind |
-| 2 | 4 | `SRC` | Source agent identifier |
-| 6 | 4 | `DST` | Destination agent or service |
-| 10 | 3 | `ACT` | Requested action |
-| 13 | 4 | `RES` | Resource or subject |
-| 17 | 4 | `CTX` | Execution context |
-| 21 | 5 | `REF` | Shared-state or payload reference |
-| 26 | 4 | `NONCE` | Replay/deduplication value |
-| 30 | 6 | `AUTH` | Truncated authentication hint |
+FTIP is the canonical semantic intent layer. An encoder MUST resolve the source representation into FTIP before Morse/36 encoding. Equivalent source representations SHOULD normalize to equivalent FTIP intent.
 
-Total width: **36 characters**.
+FTIP is not transmitted merely because the encoder used it internally. The wire representation is Morse/36 word(s).
 
-## 4. Field rules
+## 4. Morse/36 words
 
-### V — version
+A Morse/36 word is a deterministic registry-bound representation of FTIP semantics. One intent MAY require a composition of words.
 
-`0` identifies this research draft. A decoder MUST reject unsupported versions; it MUST NOT silently reinterpret them.
+The old fixed-field tuple layout and examples such as `ASD|VCE|GET|001` or `0QALFRSOPHGETDIAGGCP00000100A1000000` are retired research sketches and are **not** current wire syntax.
 
-### K — kind
+The exact word alphabet, grammar, boundaries and registry mapping remain open pre-v0.1 work.
 
-Initial kinds are `Q` query, `C` command, `E` event, `R` response, `A` acknowledgement, `X` error, and `H` handshake.
+## 5. Envelopes
 
-### SRC and DST — endpoints
+- **M36:** target maximum 36 characters for routine intent.
+- **M366:** target maximum 366 characters when additional context is required.
 
-Four-character identifiers are registry entries, not free-form abbreviations. `FFFF` is broadcast and MUST be disabled unless the transport explicitly permits broadcast.
-
-### ACT, RES, and CTX — instruction tuple
-
-The tuple `(ACT, RES, CTX)` defines the deterministic instruction. A decoder MUST resolve all three values against the same registry version. Unknown codes MUST fail closed.
-
-### REF — state reference
-
-`REF` addresses a registry-defined record, cached payload, workflow state, or external companion payload. It is not globally unique. Its meaning is scoped by the negotiated registry and context.
-
-`00000` means no referenced state.
-
-### NONCE — replay and idempotency input
-
-The sender increments or randomly assigns `NONCE` according to the active session profile. The receiver MUST maintain a replay window for privileged operations. Reusing a nonce MUST NOT make a non-idempotent operation execute twice.
-
-### AUTH — authentication hint
-
-`AUTH` is a six-character truncated tag used by the research prototype for rapid rejection and experiment measurement. It provides only about 31 bits of tag space and is **not sufficient authentication for hostile or production environments**.
-
-Privileged operations MUST use the secure companion envelope defined in `security.md`.
-
-## 5. Canonical example
-
-```text
-0QALFRSOPHGETDIAGGCP00000100A1000000
-```
-
-| Field | Value | Interpretation |
-|---|---|---|
-| `V` | `0` | Draft version |
-| `K` | `Q` | Query |
-| `SRC` | `ALFR` | Alfred |
-| `DST` | `SOPH` | Sophia |
-| `ACT` | `GET` | Retrieve |
-| `RES` | `DIAG` | Diagnostic |
-| `CTX` | `GCP0` | Google Cloud profile 0 |
-| `REF` | `00001` | Shared record 1 |
-| `NONCE` | `00A1` | Session nonce |
-| `AUTH` | `000000` | Unsigned demonstration only |
+An encoder MUST NOT discard semantic information merely to satisfy an envelope. Non-shared data must travel separately or by an authenticated reference.
 
 ## 6. Encoding pipeline
 
-1. Normalize the intent without executing it.
-2. Resolve source and destination identities.
-3. Map intent to a registered `(K, ACT, RES, CTX)` tuple.
-4. Store non-encodable data as companion state and assign `REF`.
-5. Assign `NONCE` under the session replay policy.
-6. Serialize the first 30 characters.
-7. Calculate `AUTH` under the negotiated profile.
-8. Validate length, alphabet, registry compatibility, authorization, and policy.
-9. Transmit.
+1. Parse the source representation without executing it.
+2. Normalize meaning into FTIP.
+3. Validate that FTIP is supported and authorized for encoding.
+4. Resolve FTIP against the negotiated immutable registry.
+5. Emit canonical Morse/36 word(s).
+6. Bind required integrity/security metadata at the appropriate transport or companion layer.
+7. Transmit.
 
-A DLM or LLM MAY propose a mapping, but a deterministic validator MUST produce or reject the final frame. Model output MUST NOT bypass registry and authorization checks.
+A model MAY assist semantic normalization, but deterministic validation MUST accept or reject the final FTIP and word sequence.
 
 ## 7. Decoding pipeline
 
-1. Reject frames that are not exactly 36 Base36 characters.
-2. Split by fixed offsets.
-3. Verify supported version and negotiated registry.
-4. Verify the full companion signature when required, then verify `AUTH`.
-5. Reject replayed or expired nonces.
-6. Resolve every registry code; unknown values fail closed.
-7. Apply authorization and safety policy.
-8. Produce a typed instruction object.
-9. Execute only through the target agent's normal policy boundary.
+1. Parse Morse/36 word boundaries.
+2. Verify protocol/registry compatibility.
+3. Reject unknown or malformed words.
+4. Resolve word(s) deterministically to FTIP.
+5. Apply authentication, authorization, replay and safety policy.
+6. Adapt FTIP to the receiver-native operation.
+7. Execute only through the receiver's normal policy boundary.
 
-## 8. Responses and errors
+## 8. Registry negotiation
 
-Responses SHOULD reuse the request `REF` when it identifies the active transaction. `A` acknowledges acceptance, `R` returns a referenced result, and `X` returns a registered error class. Acknowledgement is not proof of successful task completion.
+Peers MUST agree on protocol version and an immutable registry identity/digest before interpreting words. A word MUST NOT silently change meaning between registry versions.
 
-## 9. Registry negotiation
+## 9. Non-goals
 
-Before normal exchange, peers MUST agree on:
+Morse/36 is not universal data compression, not a replacement for transport protocols, and not probabilistic authorization.
 
-- protocol version;
-- registry identifier and immutable digest;
-- authentication profile;
-- nonce and replay policy;
-- maximum companion payload size;
-- expiry and retry behavior.
+## 10. Open questions
 
-Negotiation MAY occur through a verbose bootstrap transport. Compression begins only after both peers confirm the same state.
-
-## 10. Non-goals for v0.1
-
-- universal natural-language compression;
-- replacement of all transport protocols;
-- autonomous authorization by an inference model;
-- production-grade cryptography inside 36 characters;
-- guaranteed semantic compatibility without shared registries.
-
-## 11. Open questions
-
-- Is fixed width superior to a smaller binary representation plus printable encoding?
-- Which instructions occur frequently enough to justify registry entries?
-- How often does registry drift cause semantic failure?
-- Does model-assisted encoding remain deterministic across vendors and versions?
-- Which authentication design preserves compactness without weakening security?
+- What word alphabet gives the best balance of compactness and inspectability?
+- How are multiple words composed canonically?
+- Which FTIP intents deserve public registry words?
+- How should references and arguments be represented without leaking the old tuple abstraction onto the wire?
+- What security binding preserves the word model without weakening authentication?
