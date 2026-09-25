@@ -2,65 +2,53 @@
 
 ## Research question
 
-Can a shared-registry, 36-character instruction frame reduce agent-to-agent communication cost while preserving semantic accuracy, operational safety, and debuggability?
+Can the pipeline **source representation → FTIP → Morse/36 word(s)** reduce machine-to-machine communication cost while preserving exact semantic intent, safety and debuggability?
 
 ## Hypotheses
 
-1. For repeated registered tasks, Morse/36 reduces transmitted bytes and parser work compared with canonical JSON.
-2. Deterministic validation prevents unsupported model-generated instructions from reaching execution.
-3. Registry drift is the dominant semantic failure mode.
-4. A 36-character frame is insufficient as a standalone secure envelope.
+1. Different source formats expressing equivalent meaning can normalize to the same FTIP intent.
+2. Registered FTIP intents can be represented by compact Morse/36 word(s) with exact round-trip semantics.
+3. Registry drift is a primary semantic failure mode and must fail closed.
+4. Compact words do not remove the need for external authentication, authorization and replay protection.
 
 ## Baselines
 
 - canonical JSON tool call;
-- compact JSON;
+- compact/compressed JSON;
 - CBOR or MessagePack;
-- direct function/RPC identifier plus arguments;
-- Morse/36 with and without companion payloads.
+- direct RPC/function identifiers;
+- FTIP + Morse/36 word(s), including registry overhead.
 
 ## Measurements
 
-- wire bytes per completed task;
-- tokens consumed in encode/decode steps;
-- p50, p95, and p99 latency;
-- exact semantic match rate;
-- false execution and false rejection rates;
-- registry miss and drift rate;
-- replay rejection rate;
-- recovery behavior after corruption;
-- implementation and debugging complexity.
+Measure source bytes, FTIP normalization latency, Morse word bytes, encode/decode latency, semantic match rate, registry miss/drift rate, false execution/rejection, and implementation complexity.
 
-## Initial test bed
+## Test phases
 
-Use two isolated agents with a pinned registry. Start with read-only synthetic operations under `TEST`; do not use production credentials or infrastructure.
+1. source-format → FTIP equivalence tests;
+2. FTIP → word → FTIP deterministic round trips;
+3. malformed and unknown-word rejection;
+4. registry mismatch trials;
+5. replay/idempotency and security integration;
+6. baseline comparison;
+7. fuzz and adversarial testing;
+8. independent implementation reproduction.
 
-Test phases:
+## Success criteria
 
-1. deterministic codec round trips;
-2. corruption and invalid-length rejection;
-3. unknown-code and mismatched-registry rejection;
-4. replay and idempotency trials;
-5. DLM-assisted intent mapping with deterministic validation;
-6. comparison against baselines;
-7. adversarial and fuzz testing;
-8. multi-agent routing and registry upgrade trials.
+- 100% semantic round-trip accuracy for registered deterministic vectors;
+- zero execution of unknown or unauthorized words;
+- measurable benefit for at least one defined workload;
+- reproducible results across at least two implementations.
 
-## Success criteria for further research
+Failure is a valid result and MUST be documented.
 
-- 100% round-trip accuracy for registered deterministic vectors;
-- zero execution of malformed, unauthorized, or unknown frames;
-- measurable byte reduction for the selected workload;
-- no material latency regression against the chosen baseline;
-- reproducible results across at least two independent implementations.
-
-Failure to meet these criteria is a valid research result and MUST be documented.
-
-## Canonical vector 0001
+## Vector 0001
 
 ```text
-Frame: 0QALFRSOPHGETDIAGGCP00000100A1000000
-Length: 36
-Meaning: Alfred queries Sophia for diagnostic record 00001 in GCP0.
-Security: Unsigned demonstration vector; it must not execute outside local TEST mode.
+Source: JSON describing Alfred requesting Sophia to diagnose voice
+FTIP:   alfred>sophia:request.diagnostic(voice)
+M36:    <registry-assigned word pending>
 ```
+
+The word is intentionally unassigned until the word grammar and registry RFC are accepted.
