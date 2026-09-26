@@ -2,9 +2,19 @@
 
 **Compact Machine Intent.**
 
-Morse/36 is an open protocol experiment for expressing normalized machine intent as compact, deterministic **Morse/36 word(s)**.
-
 > How little does one machine need to say for another machine to act correctly?
+
+### [▶ OPEN THE INTERACTIVE MORSE/36 WORKBENCH](https://thegrahamfoundation.github.io/Morse-36/workbench/)
+
+**Source → FTIP → Morse → Morse² → M36 Wire**
+
+Use the live Workbench to enter a payload and watch it move layer by layer toward a bounded Morse/36 representation.
+
+[Launch Workbench ↗](https://thegrahamfoundation.github.io/Morse-36/workbench/) · [Project Landing Page ↗](https://thegrahamfoundation.github.io/Morse-36/)
+
+---
+
+Morse/36 is an open protocol experiment for expressing normalized machine intent as compact, deterministic **Morse/36 word(s)**.
 
 Morse/36 is stewarded by **The Graham Foundation**.
 
@@ -80,7 +90,7 @@ Morse/36 is not a universal replacement for JSON, XML, protobuf or transport pro
 
 **Experimental / pre-v0.1.** Word grammar and registry assignments are not stable yet.
 
-See `SPEC.md`, `docs/WIRE-MODEL.md`, and the workbench for the current research model.
+See `SPEC.md`, `docs/WIRE-MODEL.md`, and the [interactive Workbench](https://thegrahamfoundation.github.io/Morse-36/workbench/) for the current research model.
 
 ---
 
