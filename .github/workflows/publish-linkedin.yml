@@ -1,0 +1,35 @@
+name: Publish to LinkedIn
+
+on:
+  workflow_dispatch:
+    inputs:
+      post_text:
+        description: "Optional LinkedIn post text; blank uses the Morse/36 default"
+        required: false
+        type: string
+  release:
+    types: [published]
+
+permissions:
+  contents: read
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    environment: linkedin-publishing
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+
+      - name: Publish as David Labs
+        env:
+          LINKEDIN_ACCESS_TOKEN: ${{ secrets.LINKEDIN_ACCESS_TOKEN }}
+          LINKEDIN_ORG_ID: ${{ secrets.LINKEDIN_ORG_ID }}
+          LINKEDIN_VERSION: ${{ vars.LINKEDIN_VERSION }}
+          LINKEDIN_POST_TEXT: ${{ inputs.post_text }}
+        run: node scripts/publish-linkedin.mjs
