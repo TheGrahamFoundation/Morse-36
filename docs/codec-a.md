@@ -4,11 +4,8 @@
 **Envelope:** M36  
 **Maximum:** 36 characters
 
-Codec A is the first running internal implementation of Morse/36. It is used by
-David Labs' Git Blend experiment to move compact control-plane intent between
-Git Blend, Workbench, Sparks, and publishing adapters.
-
-It is **not** the final public Morse/36 grammar.
+Codec A is a registry-driven experimental implementation of Morse/36. It is
+**not** the final public Morse/36 grammar.
 
 ## Layout
 
@@ -22,41 +19,25 @@ M36A + III + TTTTTTTT + ARG
 - `ARG` — optional compact argument
 - entire packet MUST be <= 36 characters
 
-## Initial registry
+## Registries
 
-| Code | Intent |
-| --- | --- |
-| `GBL` | Git Blend evaluation request |
-| `SPD` | Sparks debit |
-| `RFL` | Sparks refuel required/requested |
-| `PUB` | Workbench decision: publish |
-| `HLD` | Workbench decision: hold |
-| `IGN` | Workbench decision: ignore |
-| `ACK` | acknowledgement |
-| `ERR` | deterministic error |
+Codec A contains no private code assignments. The three-character code is
+resolved through an immutable, canonical-SHA-256-bound registry selected by the
+application. Private dictionaries belong in Fox/domain compilers, not in
+Morse/36. They are distributed to compatible peers as immutable compiled
+registry artifacts.
 
-Example:
-
-```text
-M36ASPD7A91B04E5
-```
-
-means: an M36 Codec-A packet carrying a Sparks-debit intent, trace
-`7A91B04E`, argument `5`.
+Morse owns the envelope, trace fingerprint, argument canonicalization,
+deterministic decoding, and failure semantics. A domain compiler owns the
+mapping from private domain meaning to registry entries.
 
 ## Security boundary
 
 Codec A carries **intent only**. It MUST NOT carry card details, access tokens,
 Stripe secrets, OAuth credentials, or other payment/authentication secrets.
 
-For the Git Blend dogfood path:
-
-```text
-Git → Blend → M36 GBL → Workbench
-Workbench → M36 SPD → Sparks
-Workbench → M36 PUB/HLD/IGN → publisher
-Sparks → M36 RFL → authenticated refuel flow
-```
-
-Stripe remains the fiat/payment rail. Morse/36 only tells the system what needs
-to happen.
+The eight-character BLAKE2s value is a trace fingerprint, not the full
+idempotency key and not proof of identity. The library can verify a caller-held
+full key against that fingerprint. It makes no authentication or authorization
+claims; those controls remain the responsibility of the transport and
+application layers.

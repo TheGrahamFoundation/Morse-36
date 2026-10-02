@@ -41,6 +41,26 @@ JSON / XML / YAML / HL7 / object / natural language
 
 Morse/36 does not compress JSON. A source representation is interpreted into FTIP; FTIP is then encoded into one or more Morse/36 words. Decoding reverses that path.
 
+## Python library
+
+Install the registry-driven reference library with `python -m pip install .`.
+
+```python
+from morse36 import Registry, decode, encode, verify_idempotency_key
+
+registry = Registry.load("compiled-registry.json")
+raw = encode(registry, "example.signal", "full-idempotency-key", "optional arg")
+packet = decode(registry, raw)
+
+assert packet.entry.semantic["intent"] == "signal"
+assert verify_idempotency_key(packet, "full-idempotency-key")
+```
+
+The package contains wire behavior, not David Labs or other private code
+dictionaries. Private dictionaries belong in Fox/domain compilers and should
+be distributed only as immutable compiled registry artifacts. Morse owns wire
+semantics; domain compilers own private semantic assignments.
+
 ## Example
 
 ```json
@@ -84,7 +104,7 @@ The limits are research constraints, not claims of optimality.
 
 ## What Morse/36 is not
 
-Morse/36 is not a universal replacement for JSON, XML, protobuf or transport protocols. It is not an LLM prompt format. It does not make information disappear: data not already shared by the receiver must still travel or be referenced.
+Morse/36 is not a universal replacement for JSON, XML, protobuf or transport protocols. It is not an LLM prompt format. It does not make information disappear: data not already shared by the receiver must still travel or be referenced. Morse packets and trace fingerprints make no authentication or authorization claims.
 
 ## Status
 
